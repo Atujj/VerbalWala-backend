@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: verbalwala-backend
+
+  data:
+    mongodb:
+      uri: mongodb+srv://atujj:At9977%407@cluster0.unwhvcw.mongodb.net/Verbalwala?appName=Cluster0
+
+server:
+  port: 8081
