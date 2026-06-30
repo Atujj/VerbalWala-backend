@@ -8,6 +8,8 @@ public enum AttemptStatus {
 
     EVALUATING,
 
-    COMPLETED
+    COMPLETED,
+
+    TERMINATED
 
 }

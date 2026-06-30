@@ -6,6 +6,14 @@ public enum AttemptEndReason {
 
     AUTO_SUBMITTED,
 
-    EXITED
+    EXITED,
+
+    TAB_SWITCH,
+
+    PAGE_REFRESH,
+
+    BROWSER_CLOSED,
+
+    BACK_BUTTON
 
 }

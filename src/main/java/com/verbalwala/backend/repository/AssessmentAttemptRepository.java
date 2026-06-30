@@ -23,4 +23,24 @@ public interface AssessmentAttemptRepository
             AttemptStatus status
     );
 
+
+    long countByStudentIdAndStatus(
+            String studentId,
+            AttemptStatus status
+    );
+
+    List<AssessmentAttempt>
+    findByAssessmentIdAndStudentIdOrderByAttemptNumberAsc(
+            String assessmentId,
+            String studentId
+    );
+
+    long countByAssessmentIdAndStudentIdAndStatusIn(
+            String assessmentId,
+            String studentId,
+            List<AttemptStatus> statuses
+    );
+
+
+
 }

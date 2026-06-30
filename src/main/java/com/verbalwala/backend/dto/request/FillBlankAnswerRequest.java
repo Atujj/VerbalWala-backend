@@ -11,7 +11,7 @@ public class FillBlankAnswerRequest {
     @NotBlank(message = "Question ID is required")
     private String questionId;
 
-    @NotBlank(message = "Answer is required")
+
     private String answer;
 
 }

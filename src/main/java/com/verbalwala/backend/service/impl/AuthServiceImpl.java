@@ -4,6 +4,7 @@ import com.verbalwala.backend.dto.request.LoginRequest;
 import com.verbalwala.backend.dto.request.SignupRequest;
 import com.verbalwala.backend.dto.response.ApiResponse;
 import com.verbalwala.backend.dto.response.LoginData;
+import com.verbalwala.backend.dto.response.UserResponse;
 import com.verbalwala.backend.entity.User;
 import com.verbalwala.backend.enums.Role;
 import com.verbalwala.backend.exception.EmailAlreadyExistsException;
@@ -84,8 +85,14 @@ public class AuthServiceImpl implements AuthService {
 
         LoginData loginData = LoginData.builder()
                 .token(token)
-                .fullName(user.getFullName())
-                .role(user.getRole().name())
+                .user(
+                        UserResponse.builder()
+                                .id(user.getId())
+                                .fullName(user.getFullName())
+                                .email(user.getEmail())
+                                .role(user.getRole().name())
+                                .build()
+                )
                 .build();
 
         return ApiResponse.<LoginData>builder()
@@ -94,4 +101,6 @@ public class AuthServiceImpl implements AuthService {
                 .data(loginData)
                 .build();
     }
+
+
 }

@@ -4,6 +4,7 @@ public enum AssessmentStatus {
 
     DRAFT,
     PUBLISHED,
-    ARCHIVED
+    ARCHIVED,
+    ACTIVE
 
 }

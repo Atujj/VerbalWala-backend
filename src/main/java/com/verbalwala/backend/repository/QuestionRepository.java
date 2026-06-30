@@ -15,6 +15,8 @@ public interface QuestionRepository extends MongoRepository<Question, String> {
             QuestionType type
     );
 
+    long countByAssessmentId(String assessmentId);
+
 
 
 }

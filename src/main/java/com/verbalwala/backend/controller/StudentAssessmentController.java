@@ -3,6 +3,7 @@ package com.verbalwala.backend.controller;
 import com.verbalwala.backend.dto.request.SubmitEmailRequest;
 import com.verbalwala.backend.dto.request.SubmitFillBlankRequest;
 import com.verbalwala.backend.dto.request.SubmitPassageRequest;
+import com.verbalwala.backend.dto.request.TerminateAssessmentRequest;
 import com.verbalwala.backend.dto.response.*;
 import com.verbalwala.backend.service.StudentAssessmentService;
 import jakarta.validation.Valid;
@@ -64,5 +65,22 @@ public class StudentAssessmentController {
                 )
         );
     }
+
+    @PostMapping("/attempts/{attemptId}/terminate")
+    public ResponseEntity<ApiResponse<Void>> terminateAssessment(
+            @PathVariable String attemptId,
+            @Valid @RequestBody TerminateAssessmentRequest request) {
+
+        return ResponseEntity.ok(
+                studentAssessmentService.terminateAssessment(
+                        attemptId,
+                        request
+                )
+        );
+
+    }
+
+
+
 
 }

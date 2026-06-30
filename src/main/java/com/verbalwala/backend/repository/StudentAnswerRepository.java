@@ -10,4 +10,6 @@ public interface StudentAnswerRepository
 
     List<StudentAnswer> findByAttemptId(String attemptId);
 
+    void deleteByAttemptId(String attemptId);
+
 }

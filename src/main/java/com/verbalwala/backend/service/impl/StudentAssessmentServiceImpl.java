@@ -1,9 +1,6 @@
 package com.verbalwala.backend.service.impl;
 
-import com.verbalwala.backend.dto.request.FillBlankAnswerRequest;
-import com.verbalwala.backend.dto.request.SubmitEmailRequest;
-import com.verbalwala.backend.dto.request.SubmitFillBlankRequest;
-import com.verbalwala.backend.dto.request.SubmitPassageRequest;
+import com.verbalwala.backend.dto.request.*;
 import com.verbalwala.backend.dto.response.*;
 import com.verbalwala.backend.entity.*;
 import com.verbalwala.backend.enums.*;
@@ -72,48 +69,84 @@ public class StudentAssessmentServiceImpl implements StudentAssessmentService {
                     "Assessment is not available");
         }
 
-        Optional<AssessmentAttempt> existingAttempt =
-                assessmentAttemptRepository.findByAssessmentIdAndStudentIdAndStatus(
-                        assessmentId,
-                        student.getId(),
-                        AttemptStatus.STARTED
-                );
+        Optional<AssessmentAttempt> startedAttempt =
+                assessmentAttemptRepository
+                        .findByAssessmentIdAndStudentIdAndStatus(
+                                assessmentId,
+                                student.getId(),
+                                AttemptStatus.STARTED
+                        );
 
         AssessmentAttempt attempt;
 
-        boolean resumed = false;
+        if (startedAttempt.isPresent()) {
 
-        if (existingAttempt.isPresent()) {
+            attempt = startedAttempt.get();
 
-            attempt = existingAttempt.get();
-            resumed = true;
+            studentAnswerRepository.deleteByAttemptId(
+                    attempt.getId()
+            );
+
+            attempt.setObtainedMarks(0);
+            attempt.setTotalMarks(null);
+            attempt.setStartedAt(LocalDateTime.now());
+            attempt.setSubmittedAt(null);
+            attempt.setEndReason(null);
+
+            assessmentAttemptRepository.save(attempt);
 
         } else {
 
-            Optional<AssessmentAttempt> latestAttempt =
+            long attemptsUsed =
                     assessmentAttemptRepository
-                            .findTopByAssessmentIdAndStudentIdOrderByAttemptNumberDesc(
+                            .countByAssessmentIdAndStudentIdAndStatusIn(
                                     assessmentId,
-                                    student.getId()
+                                    student.getId(),
+                                    List.of(
+                                            AttemptStatus.COMPLETED,
+                                            AttemptStatus.TERMINATED,
+                                            AttemptStatus.SUBMITTED,
+                                            AttemptStatus.EVALUATING
+                                    )
                             );
 
-            int nextAttempt = latestAttempt
-                    .map(a -> a.getAttemptNumber() + 1)
-                    .orElse(1);
+            if (attemptsUsed >= assessment.getMaxAttempts()) {
 
-            if (nextAttempt > assessment.getMaxAttempts()) {
-                throw new RuntimeException("Maximum attempts exceeded");
+                throw new RuntimeException(
+                        "Maximum attempts exceeded"
+                );
+
             }
 
-            attempt = AssessmentAttempt.builder()
-                    .assessmentId(assessmentId)
-                    .studentId(student.getId())
-                    .attemptNumber(nextAttempt)
-                    .status(AttemptStatus.STARTED)
-                    .startedAt(LocalDateTime.now())
-                    .build();
+            attempt =
+                    AssessmentAttempt.builder()
 
-            assessmentAttemptRepository.save(attempt);
+                            .assessmentId(
+                                    assessmentId
+                            )
+
+                            .studentId(
+                                    student.getId()
+                            )
+
+                            .attemptNumber(
+                                    (int) attemptsUsed + 1
+                            )
+
+                            .status(
+                                    AttemptStatus.STARTED
+                            )
+
+                            .startedAt(
+                                    LocalDateTime.now()
+                            )
+
+                            .build();
+
+            assessmentAttemptRepository.save(
+                    attempt
+            );
+
         }
 
         List<Question> fillBlankQuestions =
@@ -129,20 +162,36 @@ public class StudentAssessmentServiceImpl implements StudentAssessmentService {
 
         StartAssessmentResponse response =
                 StartAssessmentResponse.builder()
-                        .attemptId(attempt.getId())
-                        .resumed(resumed)
-                        .fillBlankTime(assessment.getFillBlankTime())
-                        .passageReadTime(assessment.getPassageReadTime())
-                        .passageWriteTime(assessment.getPassageWriteTime())
-                        .emailWritingTime(assessment.getEmailWritingTime())
-                        .fillBlankQuestions(questionResponses)
+
+                        .attemptId(
+                                attempt.getId()
+                        )
+
+                        .fillBlankTime(
+                                assessment.getFillBlankTime()
+                        )
+
+                        .passageReadTime(
+                                assessment.getPassageReadTime()
+                        )
+
+                        .passageWriteTime(
+                                assessment.getPassageWriteTime()
+                        )
+
+                        .emailWritingTime(
+                                assessment.getEmailWritingTime()
+                        )
+
+                        .fillBlankQuestions(
+                                questionResponses
+                        )
+
                         .build();
 
         return ApiResponse.<StartAssessmentResponse>builder()
                 .success(true)
-                .message(resumed
-                        ? "Assessment resumed successfully"
-                        : "Assessment started successfully")
+                .message("Assessment started successfully")
                 .data(response)
                 .build();
     }
@@ -151,6 +200,8 @@ public class StudentAssessmentServiceImpl implements StudentAssessmentService {
     public ApiResponse<PassageResponse> submitFillBlanks(
             String attemptId,
             SubmitFillBlankRequest request) {
+
+        System.out.println("submitFillBlanks called");
 
         AssessmentAttempt attempt =
                 studentSecurityService.getStudentAttempt(
@@ -265,6 +316,10 @@ public class StudentAssessmentServiceImpl implements StudentAssessmentService {
             String studentAnswer,
             Question question
     ) {
+
+        if (studentAnswer == null || studentAnswer.isBlank()) {
+            return false;
+        }
 
         String answer =
                 studentAnswer
@@ -418,4 +473,33 @@ public class StudentAssessmentServiceImpl implements StudentAssessmentService {
                 .data(response)
                 .build();
     }
+
+    @Override
+    public ApiResponse<Void> terminateAssessment(
+            String attemptId,
+            TerminateAssessmentRequest request) {
+
+        AssessmentAttempt attempt =
+                studentSecurityService.getStudentAttempt(attemptId);
+
+        if (attempt.getStatus() != AttemptStatus.STARTED) {
+            throw new RuntimeException("Assessment already finished");
+        }
+
+        attempt.setStatus(AttemptStatus.TERMINATED);
+
+        attempt.setEndReason(request.getReason());
+
+        attempt.setSubmittedAt(LocalDateTime.now());
+
+        assessmentAttemptRepository.save(attempt);
+
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .message("Assessment terminated")
+                .data(null)
+                .build();
+    }
+
+
 }
