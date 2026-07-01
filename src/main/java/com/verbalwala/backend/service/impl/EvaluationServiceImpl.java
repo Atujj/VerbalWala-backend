@@ -17,6 +17,7 @@ import com.verbalwala.backend.service.EvaluationService;
 import com.verbalwala.backend.service.GeminiService;
 import com.verbalwala.backend.service.StudentSecurityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,9 +48,9 @@ public class EvaluationServiceImpl implements EvaluationService {
     public void evaluateAttempt(String attemptId) {
 
         AssessmentAttempt attempt =
-                studentSecurityService.getStudentAttempt(
-                        attemptId
-                );
+                assessmentAttemptRepository.findById(attemptId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Attempt not found"));
 
         attempt.setStatus(AttemptStatus.EVALUATING);
         assessmentAttemptRepository.save(attempt);
@@ -131,7 +132,7 @@ public class EvaluationServiceImpl implements EvaluationService {
             StudentAnswer answer,
             Question question) {
 
-        System.out.println("Evaluating Passage...");
+
 
         AiEvaluationResponse response =
                 geminiService.evaluatePassage(
@@ -156,7 +157,7 @@ public class EvaluationServiceImpl implements EvaluationService {
             StudentAnswer answer,
             Question question) {
 
-        System.out.println("Evaluating Email...");
+
 
         AiEvaluationResponse response =
                 geminiService.evaluateEmail(
@@ -174,6 +175,22 @@ public class EvaluationServiceImpl implements EvaluationService {
                 EvaluationStatus.AI_EVALUATED);
 
         studentAnswerRepository.save(answer);
+
+    }
+
+    @Async
+    @Override
+    public void evaluateAttemptAsync(String attemptId) {
+
+        try {
+
+            evaluateAttempt(attemptId);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
 
     }
 

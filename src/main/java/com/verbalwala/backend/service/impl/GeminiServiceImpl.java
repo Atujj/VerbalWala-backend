@@ -80,8 +80,6 @@ public class GeminiServiceImpl implements GeminiService {
 
             response = cleanJson(response);
 
-            System.out.println("Gemini Response:");
-            System.out.println(response);
 
             return objectMapper.readValue(
                     response,
@@ -91,7 +89,7 @@ public class GeminiServiceImpl implements GeminiService {
         } catch (Exception ex) {
 
             throw new GeminiException(
-                    "Failed to evaluate email",
+                    "Failed to evaluate passage",
                     ex
             );
 
@@ -122,8 +120,6 @@ public class GeminiServiceImpl implements GeminiService {
 
             response = cleanJson(response);
 
-            System.out.println("Gemini Response:");
-            System.out.println(response);
 
             return objectMapper.readValue(
                     response,
@@ -132,7 +128,12 @@ public class GeminiServiceImpl implements GeminiService {
 
         } catch (Exception ex) {
 
-            throw new GeminiException("No response from Gemini");
+            ex.printStackTrace();
+
+            throw new GeminiException(
+                    "Failed to evaluate email",
+                    ex
+            );
 
         }
 

@@ -3,12 +3,12 @@ package com.verbalwala.backend.dto.request;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
-public class SubmitEmailRequest {
+public class EmailAnswerRequest {
 
-    private List<EmailAnswerRequest> answers;
+    private String questionId;
+
+    private String answer;
 
 }

@@ -201,7 +201,6 @@ public class StudentAssessmentServiceImpl implements StudentAssessmentService {
             String attemptId,
             SubmitFillBlankRequest request) {
 
-        System.out.println("submitFillBlanks called");
 
         AssessmentAttempt attempt =
                 studentSecurityService.getStudentAttempt(
@@ -273,16 +272,15 @@ public class StudentAssessmentServiceImpl implements StudentAssessmentService {
         attempt.setObtainedMarks(obtainedMarks);
         assessmentAttemptRepository.save(attempt);
 
-        Question passage =
+        List<QuestionResponse> passages =
                 questionRepository
                         .findByAssessmentIdAndTypeOrderByQuestionOrder(
                                 attempt.getAssessmentId(),
                                 QuestionType.PASSAGE
                         )
                         .stream()
-                        .findFirst()
-                        .orElseThrow(() ->
-                                new RuntimeException("Passage not found"));
+                        .map(QuestionMapper::toResponse)
+                        .toList();
 
         Assessment assessment =
                 assessmentRepository.findById(
@@ -293,15 +291,22 @@ public class StudentAssessmentServiceImpl implements StudentAssessmentService {
 
         PassageResponse response =
                 PassageResponse.builder()
-                        .questionId(passage.getId())
-                        .questionText(passage.getQuestionText())
+
                         .readingTime(
                                 assessment.getPassageReadTime()
                         )
+
                         .writingTime(
                                 assessment.getPassageWriteTime()
                         )
+
+                        .passageQuestions(
+                                passages
+                        )
+
                         .build();
+
+
 
         return ApiResponse.<PassageResponse>builder()
                 .success(true)
@@ -358,56 +363,102 @@ public class StudentAssessmentServiceImpl implements StudentAssessmentService {
         }
 
         Assessment assessment =
-                assessmentRepository.findById(attempt.getAssessmentId())
-                        .orElseThrow(() ->
-                                new AssessmentNotFoundException("Assessment not found"));
-
-
-        Question passage =
-                questionRepository
-                        .findByAssessmentIdAndTypeOrderByQuestionOrder(
-                                attempt.getAssessmentId(),
-                                QuestionType.PASSAGE
+                assessmentRepository
+                        .findById(
+                                attempt.getAssessmentId()
                         )
-                        .stream()
-                        .findFirst()
                         .orElseThrow(() ->
-                                new RuntimeException("Passage not found"));
+                                new AssessmentNotFoundException(
+                                        "Assessment not found"
+                                )
+                        );
 
-        StudentAnswer studentAnswer =
-                StudentAnswer.builder()
-                        .attemptId(attemptId)
-                        .questionId(passage.getId())
-                        .answer(request.getAnswer())
-                        .obtainedMarks(0)
-                        .evaluationStatus(EvaluationStatus.PENDING)
-                        .feedback(List.of())
-                        .build();
+        List<StudentAnswer> answers =
 
-        studentAnswerRepository.save(studentAnswer);
+                request.getAnswers()
 
-        Question email =
+                        .stream()
+
+                        .map(answer ->
+
+                                StudentAnswer.builder()
+
+                                        .attemptId(
+                                                attemptId
+                                        )
+
+                                        .questionId(
+                                                answer.getQuestionId()
+                                        )
+
+                                        .answer(
+                                                answer.getAnswer()
+                                        )
+
+                                        .obtainedMarks(
+                                                0
+                                        )
+
+                                        .evaluationStatus(
+                                                EvaluationStatus.PENDING
+                                        )
+
+                                        .feedback(
+                                                List.of()
+                                        )
+
+                                        .build()
+
+                        )
+
+                        .toList();
+
+        studentAnswerRepository.saveAll(
+                answers
+        );
+
+        List<QuestionResponse> emails =
+
                 questionRepository
+
                         .findByAssessmentIdAndTypeOrderByQuestionOrder(
+
                                 attempt.getAssessmentId(),
+
                                 QuestionType.EMAIL
+
                         )
+
                         .stream()
-                        .findFirst()
-                        .orElseThrow(() ->
-                                new RuntimeException("Email question not found"));
+
+                        .map(
+                                QuestionMapper::toResponse
+                        )
+
+                        .toList();
 
         EmailResponse response =
+
                 EmailResponse.builder()
-                        .questionId(email.getId())
-                        .questionText(email.getQuestionText())
-                        .writingTime(assessment.getEmailWritingTime())
+
+                        .writingTime(
+                                assessment.getEmailWritingTime()
+                        )
+
+                        .emailQuestions(
+                                emails
+                        )
+
                         .build();
 
         return ApiResponse.<EmailResponse>builder()
+
                 .success(true)
-                .message("Passage submitted")
+
+                .message("Passages submitted")
+
                 .data(response)
+
                 .build();
 
     }
@@ -431,35 +482,58 @@ public class StudentAssessmentServiceImpl implements StudentAssessmentService {
                         .orElseThrow(() ->
                                 new AssessmentNotFoundException("Assessment not found"));
 
-        Question email =
-                questionRepository
-                        .findByAssessmentIdAndTypeOrderByQuestionOrder(
-                                attempt.getAssessmentId(),
-                                QuestionType.EMAIL
-                        )
+
+
+        List<StudentAnswer> answers =
+
+                request.getAnswers()
+
                         .stream()
-                        .findFirst()
-                        .orElseThrow(() ->
-                                new RuntimeException("Email question not found"));
 
-        StudentAnswer studentAnswer =
-                StudentAnswer.builder()
-                        .attemptId(attemptId)
-                        .questionId(email.getId())
-                        .answer(request.getAnswer())
-                        .obtainedMarks(0)
-                        .evaluationStatus(EvaluationStatus.PENDING)
-                        .feedback(List.of())
-                        .build();
+                        .map(answer ->
 
-        studentAnswerRepository.save(studentAnswer);
+                                StudentAnswer.builder()
+
+                                        .attemptId(
+                                                attemptId
+                                        )
+
+                                        .questionId(
+                                                answer.getQuestionId()
+                                        )
+
+                                        .answer(
+                                                answer.getAnswer()
+                                        )
+
+                                        .obtainedMarks(
+                                                0
+                                        )
+
+                                        .evaluationStatus(
+                                                EvaluationStatus.PENDING
+                                        )
+
+                                        .feedback(
+                                                List.of()
+                                        )
+
+                                        .build()
+
+                        )
+
+                        .toList();
+
+        studentAnswerRepository.saveAll(
+                answers
+        );
 
         attempt.setStatus(AttemptStatus.SUBMITTED);
         attempt.setSubmittedAt(LocalDateTime.now());
         attempt.setEndReason(AttemptEndReason.SUBMITTED);
 
         assessmentAttemptRepository.save(attempt);
-        evaluationService.evaluateAttempt(attemptId);
+        evaluationService.evaluateAttemptAsync(attemptId);
 
         AssessmentSubmittedResponse response =
                 AssessmentSubmittedResponse.builder()

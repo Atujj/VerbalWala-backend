@@ -44,4 +44,6 @@ public class Assessment {
 
     private LocalDateTime updatedAt;
 
+    private String createdBy;
+
 }

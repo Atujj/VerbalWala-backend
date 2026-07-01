@@ -1,8 +1,8 @@
 package com.verbalwala.backend.controller;
 
 import com.verbalwala.backend.dto.response.ApiResponse;
-import com.verbalwala.backend.dto.response.StudentProfileResponse;
-import com.verbalwala.backend.service.StudentProfileService;
+import com.verbalwala.backend.dto.response.ProfileResponse;
+import com.verbalwala.backend.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,20 +10,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/student")
+@RequestMapping("/api")
 @RequiredArgsConstructor
-public class StudentProfileController {
+public class ProfileController {
 
-    private final StudentProfileService studentProfileService;
+    private final ProfileService profileService;
 
     @GetMapping("/profile")
-    public ResponseEntity<ApiResponse<StudentProfileResponse>> getProfile() {
+    public ResponseEntity<ApiResponse<ProfileResponse>> getProfile() {
 
         return ResponseEntity.ok(
-                ApiResponse.<StudentProfileResponse>builder()
+                ApiResponse.<ProfileResponse>builder()
                         .success(true)
                         .message("Profile fetched successfully")
-                        .data(studentProfileService.getProfile())
+                        .data(profileService.getProfile())
                         .build()
         );
     }

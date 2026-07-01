@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class StudentProfileResponse {
+public class ProfileResponse {
 
     private String name;
 

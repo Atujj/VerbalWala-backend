@@ -8,4 +8,5 @@ public interface EvaluationService {
 
     AssessmentResultResponse getResult(String attemptId);
 
+    void evaluateAttemptAsync(String attemptId);
 }

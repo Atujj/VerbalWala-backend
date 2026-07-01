@@ -1,4 +1,4 @@
-package com.verbalwala.backend.controller.student;
+package com.verbalwala.backend.controller;
 
 import com.verbalwala.backend.dto.response.ApiResponse;
 import com.verbalwala.backend.dto.response.StudentDashboardResponse;

@@ -41,6 +41,14 @@ public interface AssessmentAttemptRepository
             List<AttemptStatus> statuses
     );
 
+    long countDistinctStudentIdByAssessmentId(
+            String assessmentId
+    );
 
 
+    List<AssessmentAttempt> findByAssessmentId(String assessmentId);
+
+    boolean existsByAssessmentId(
+            String assessmentId
+    );
 }

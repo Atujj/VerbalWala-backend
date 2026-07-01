@@ -55,10 +55,7 @@ public class StudentSecurityServiceImpl
 
         }
 
-        System.out.println("Current Student ID : " + student.getId());
-        System.out.println("Attempt Student ID : " + attempt.getStudentId());
-        System.out.println("Attempt Status     : " + attempt.getStatus());
-        System.out.println("Attempt ID         : " + attempt.getId());
+
 
 
         return attempt;

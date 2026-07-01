@@ -10,4 +10,13 @@ public interface QuestionService {
             CreateQuestionRequest request
     );
 
+    ApiResponse<Void> updateQuestion(
+            String questionId,
+            CreateQuestionRequest request
+    );
+
+    ApiResponse<Void> deleteQuestion(String questionId);
+
+
+
 }

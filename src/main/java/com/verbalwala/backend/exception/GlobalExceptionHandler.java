@@ -61,4 +61,32 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalStateException(
+            IllegalStateException ex) {
+
+        return ResponseEntity
+                .badRequest()
+                .body(
+                        ApiResponse.<Void>builder()
+                                .success(false)
+                                .message(ex.getMessage())
+                                .data(null)
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(AssessmentValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAssessmentValidationException(
+            AssessmentValidationException ex) {
+
+        return ResponseEntity.badRequest().body(
+                ApiResponse.<Void>builder()
+                        .success(false)
+                        .message(ex.getMessage())
+                        .data(null)
+                        .build()
+        );
+    }
+
 }
