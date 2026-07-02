@@ -27,4 +27,6 @@ public interface AssessmentRepository
             String createdById
     );
 
+    List<Assessment> findByStatusOrderByCreatedAtDesc(AssessmentStatus status);
+
 }

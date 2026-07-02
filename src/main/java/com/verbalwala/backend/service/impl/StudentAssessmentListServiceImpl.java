@@ -8,6 +8,7 @@ import com.verbalwala.backend.entity.AssessmentAttempt;
 import com.verbalwala.backend.entity.User;
 import com.verbalwala.backend.enums.AssessmentStatus;
 import com.verbalwala.backend.enums.AttemptStatus;
+import com.verbalwala.backend.enums.QuestionType;
 import com.verbalwala.backend.repository.AssessmentAttemptRepository;
 import com.verbalwala.backend.repository.AssessmentRepository;
 import com.verbalwala.backend.repository.QuestionRepository;
@@ -39,9 +40,11 @@ public class StudentAssessmentListServiceImpl implements StudentAssessmentListSe
 
         User student = studentSecurityService.getCurrentStudent();
 
+
+
         List<StudentAssessmentCardResponse> response =
                 assessmentRepository
-                        .findByStatus(AssessmentStatus.PUBLISHED)
+                        .findByStatusOrderByCreatedAtDesc(AssessmentStatus.PUBLISHED)
                         .stream()
                         .map(assessment -> {
 
@@ -99,6 +102,27 @@ public class StudentAssessmentListServiceImpl implements StudentAssessmentListSe
                                             )
                                             .toList();
 
+                            long fillBlankCount =
+                                    questionRepository
+                                            .countByAssessmentIdAndType(
+                                                    assessment.getId(),
+                                                    QuestionType.FILL_BLANK
+                                            );
+
+                            long passageCount =
+                                    questionRepository
+                                            .countByAssessmentIdAndType(
+                                                    assessment.getId(),
+                                                    QuestionType.PASSAGE
+                                            );
+
+                            long emailCount =
+                                    questionRepository
+                                            .countByAssessmentIdAndType(
+                                                    assessment.getId(),
+                                                    QuestionType.EMAIL
+                                            );
+
                             return StudentAssessmentCardResponse.builder()
 
                                     .assessmentId(
@@ -114,12 +138,12 @@ public class StudentAssessmentListServiceImpl implements StudentAssessmentListSe
                                     )
 
                                     .duration(
-                                            (
-                                                    assessment.getFillBlankTime()
-                                                            + assessment.getPassageReadTime()
-                                                            + assessment.getPassageWriteTime()
-                                                            + assessment.getEmailWritingTime()
-                                            ) / 60
+                                            (int) ((
+                                                    (assessment.getFillBlankTime() * fillBlankCount)
+                                                            + (assessment.getPassageReadTime() * passageCount)
+                                                            + (assessment.getPassageWriteTime() * passageCount)
+                                                            + (assessment.getEmailWritingTime() * emailCount)
+                                            ) / 60)
                                     )
 
                                     .totalQuestions(
