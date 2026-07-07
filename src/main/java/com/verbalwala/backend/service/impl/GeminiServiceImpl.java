@@ -10,6 +10,7 @@ import com.verbalwala.backend.exception.GeminiException;
 import com.verbalwala.backend.service.GeminiService;
 import com.verbalwala.backend.service.PromptBuilder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -25,6 +26,9 @@ public class GeminiServiceImpl implements GeminiService {
     private final ObjectMapper objectMapper;
 
     private final PromptBuilder promptBuilder;
+
+    @Value("${gemini.model}")
+    private String model;
 
 
     @Override
@@ -44,7 +48,7 @@ public class GeminiServiceImpl implements GeminiService {
         GeminiResponse response =
                 geminiRestClient.post()
                         .uri("/{model}:generateContent",
-                                "gemini-2.5-flash")
+                                model)
                         .body(request)
                         .retrieve()
                         .body(GeminiResponse.class);
