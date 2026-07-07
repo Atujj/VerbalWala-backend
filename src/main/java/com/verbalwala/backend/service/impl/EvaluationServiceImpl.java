@@ -230,6 +230,9 @@ public class EvaluationServiceImpl implements EvaluationService {
                                     .questionId(question.getId())
                                     .questionType(question.getType().name())
                                     .questionText(question.getQuestionText())
+                                    .studentAnswer(answer.getAnswer())
+                                    .expectedAnswer(question.getExpectedAnswer())
+                                    .alternativeAnswers(question.getAlternativeAnswers())
                                     .score(answer.getObtainedMarks())
                                     .feedback(answer.getFeedback())
                                     .build();

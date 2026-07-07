@@ -19,4 +19,10 @@ public class QuestionResultResponse {
 
     private List<String> feedback;
 
+    private String studentAnswer;
+
+    private String expectedAnswer;
+
+    private List<String> alternativeAnswers;
+
 }
